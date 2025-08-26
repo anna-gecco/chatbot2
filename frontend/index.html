@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <title>FS Chatbot</title>
+  <style>
+    body { font-family: Arial, sans-serif; }
+
+    /* Bubble Button */
+    #chat-bubble {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      width: 60px;
+      height: 60px;
+      background-color: hotpink;
+      border-radius: 50%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+      box-shadow: 0px 4px 8px rgba(0,0,0,0.2);
+      z-index: 1000;
+    }
+
+    /* Chatfenster */
+    #chat-window {
+      display: none;
+      position: fixed;
+      bottom: 90px;
+      right: 20px;
+      width: 300px;
+      height: 400px;
+      background: white;
+      border: 2px solid hotpink;
+      border-radius: 10px;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0px 4px 12px rgba(0,0,0,0.3);
+      z-index: 1000;
+    }
+
+    #chat-messages {
+      flex: 1;
+      padding: 10px;
+      overflow-y: auto;
+      font-size: 14px;
+    }
+
+    .msg-user { text-align: right; margin: 5px; color: #333; }
+    .msg-bot { text-align: left; margin: 5px; color: hotpink; }
+
+    #chat-input-container {
+      display: flex;
+      border-top: 1px solid #ccc;
+    }
+
+    #chat-input {
+      flex: 1;
+      border: none;
+      padding: 10px;
+      font-size: 14px;
+    }
+
+    #send-btn {
+      background: hotpink;
+      color: white;
+      border: none;
+      padding: 10px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+<div id="chat-bubble">FS</div>
+
+<div id="chat-window">
+  <div id="chat-messages"></div>
+  <div id="chat-input-container">
+    <input type="text" id="chat-input" placeholder="Schreibe eine Nachricht..." />
+    <button id="send-btn">➤</button>
+  </div>
+</div>
+
+<script>
+  const bubble = document.getElementById("chat-bubble");
+  const chatWindow = document.getElementById("chat-window");
+  const chatMessages = document.getElementById("chat-messages");
+  const chatInput = document.getElementById("chat-input");
+  const sendBtn = document.getElementById("send-btn");
+
+  // Toggle Chat
+  bubble.addEventListener("click", () => {
+    chatWindow.style.display = chatWindow.style.display === "flex" ? "none" : "flex";
+  });
+
+  // Nachricht senden
+  async function sendMessage() {
+    const text = chatInput.value.trim();
+    if (!text) return;
+    chatMessages.innerHTML += `<div class="msg-user">${text}</div>`;
+    chatInput.value = "";
+
+    // Anfrage ans Backend
+    const response = await fetch("https://fs-ki-chatbot.onrender.com/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ message: text })
+    });
+
+    const data = await response.json();
+    chatMessages.innerHTML += `<div class="msg-bot">${data.response}</div>`;
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+  }
+
+  sendBtn.addEventListener("click", sendMessage);
+  chatInput.addEventListener("keypress", e => {
+    if (e.key === "Enter") sendMessage();
+  });
+</script>
+
+</body>
+</html>
